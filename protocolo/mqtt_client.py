@@ -1,4 +1,3 @@
-import time
 from typing import Callable
 
 import paho.mqtt.client as mqtt

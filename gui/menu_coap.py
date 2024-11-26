@@ -1,5 +1,3 @@
-from datetime import datetime
-
 import customtkinter as ctk
 
 from gui.menu_base import MenuBase
