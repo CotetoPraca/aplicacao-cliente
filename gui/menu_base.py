@@ -357,59 +357,93 @@ class MenuBase(ctk.CTkFrame):
         barramento_enviou_cliente = metadata.get("timestamp_bus_msg_enviada_cliente")
         cliente_recebeu = metadata.get("timestamp_cliente_msg_recebida")
 
+        # Cliente -> Barramento
         if cliente_enviou and barramento_recebeu_cliente:
             latencia_cliente_barramento = barramento_recebeu_cliente - cliente_enviou
             latencia_total += latencia_cliente_barramento
-            relatorio += \
-                (f"    * Cliente enviou a mensagem: {cliente_enviou} (Inicio)\n"
-                 f"    * Barramento recebeu do cliente: {barramento_recebeu_cliente} "
-                 f"({latencia_cliente_barramento} ms / {latencia_total} ms)\n")
+            relatorio += (
+                f"    * Cliente enviou a mensagem: {cliente_enviou} (Inicio)\n"
+                f"    * Barramento recebeu do cliente: {barramento_recebeu_cliente} "
+                f"({latencia_cliente_barramento} ms / {latencia_total} ms)\n"
+            )
 
-        if barramento_recebeu_cliente and barramento_enviou_servidor:
-            latencia_barramento_c_to_s = barramento_enviou_servidor - barramento_recebeu_cliente
-            latencia_total += latencia_barramento_c_to_s
-            relatorio += (f"    * Barramento enviou para servidor: {barramento_enviou_servidor} "
-                          f"({latencia_barramento_c_to_s} ms / {latencia_total} ms)\n")
-        elif barramento_recebeu_cliente and barramento_enviou_embarcado:
-            latencia_barramento_c_to_e = barramento_enviou_embarcado - barramento_recebeu_cliente
-            latencia_total += latencia_barramento_c_to_e
-            relatorio += (f"    * Barramento enviou para embarcado: {barramento_enviou_embarcado} "
-                          f"({latencia_barramento_c_to_e} ms / {latencia_total} ms)\n")
+        # Barramento -> Servidor/Embarcado
+        if barramento_recebeu_cliente:
+            if barramento_enviou_servidor:
+                latencia_barramento_c_to_s = barramento_enviou_servidor - barramento_recebeu_cliente
+                latencia_total += latencia_barramento_c_to_s
+                relatorio += (
+                    f"    * Barramento enviou para servidor: {barramento_enviou_servidor} "
+                    f"({latencia_barramento_c_to_s} ms / {latencia_total} ms)\n"
+                )
+            elif barramento_enviou_embarcado:
+                latencia_barramento_c_to_e = barramento_enviou_embarcado - barramento_recebeu_cliente
+                latencia_total += latencia_barramento_c_to_e
+                relatorio += (
+                    f"    * Barramento enviou para embarcado: {barramento_enviou_embarcado} "
+                    f"({latencia_barramento_c_to_e} ms / {latencia_total} ms)\n"
+                )
 
-        if barramento_enviou_servidor and servidor_recebeu:
-            latencia_barramento_servidor = servidor_recebeu - barramento_enviou_servidor
-            latencia_total += latencia_barramento_servidor
-            relatorio += (f"    * Servidor recebeu: {servidor_recebeu} "
-                          f"({latencia_barramento_servidor} ms / {latencia_total} ms)\n")
+        # Servidor -> Barramento
+        if barramento_enviou_servidor:
+            if servidor_recebeu:
+                latencia_barramento_servidor = servidor_recebeu - barramento_enviou_servidor
+                latencia_total += latencia_barramento_servidor
+                relatorio += (
+                    f"    * Servidor recebeu: {servidor_recebeu} "
+                    f"({latencia_barramento_servidor} ms / {latencia_total} ms)\n"
+                )
 
-        if servidor_recebeu and servidor_enviou:
-            latencia_servidor = servidor_enviou - servidor_recebeu
-            latencia_total += latencia_servidor
-            relatorio += (f"    * Servidor enviou a resposta: {servidor_enviou} "
-                          f"({latencia_servidor} ms / {latencia_total} ms)\n")
+            if servidor_enviou:
+                latencia_servidor = servidor_enviou - servidor_recebeu
+                latencia_total += latencia_servidor
+                relatorio += (
+                    f"    * Servidor enviou a resposta: {servidor_enviou} "
+                    f"({latencia_servidor} ms / {latencia_total} ms)\n"
+                )
 
-        if servidor_enviou and barramento_recebeu_servidor:
-            latencia_servidor_barramento = barramento_recebeu_servidor - servidor_enviou
-            latencia_total += latencia_servidor_barramento
-            relatorio += (f"    * Barramento recebeu do servidor: {barramento_recebeu_servidor} "
-                          f"({latencia_servidor_barramento} ms / {latencia_total} ms)\n")
+                if barramento_recebeu_servidor:
+                    latencia_servidor_barramento = barramento_recebeu_servidor - servidor_enviou
+                    latencia_total += latencia_servidor_barramento
+                    relatorio += (
+                        f"    * Barramento recebeu do servidor: {barramento_recebeu_servidor} "
+                        f"({latencia_servidor_barramento} ms / {latencia_total} ms)\n"
+                    )
 
-        if barramento_recebeu_servidor and barramento_enviou_cliente:
-            latencia_barramento_s_to_c = barramento_recebeu_servidor - barramento_enviou_cliente
-            latencia_total += latencia_barramento_s_to_c
-            relatorio += (f"    * Barramento enviou para cliente: {barramento_enviou_cliente} "
-                          f"({latencia_barramento_s_to_c} ms / {latencia_total} ms)\n")
-        elif barramento_recebeu_embarcado and barramento_enviou_cliente:
-            latencia_barramento_e_to_c = barramento_enviou_cliente - barramento_recebeu_embarcado
-            latencia_total += latencia_barramento_e_to_c
-            relatorio += (f"    * Barramento enviou para cliente: {barramento_enviou_cliente} "
-                          f"({latencia_barramento_e_to_c} ms / {latencia_total} ms)\n")
+        # Embarcado -> Barramento
+        if barramento_enviou_embarcado and barramento_recebeu_embarcado:
+            latencia_embarcado_barramento = barramento_recebeu_embarcado - barramento_enviou_embarcado
+            latencia_total += latencia_embarcado_barramento
+            relatorio += (
+                f"    * Barramento recebeu do embarcado: {barramento_recebeu_embarcado} "
+                f"({latencia_embarcado_barramento} ms / {latencia_total} ms)"
+            )
 
-        if barramento_enviou_cliente and cliente_recebeu:
-            latencia_barramento_cliente = cliente_recebeu - barramento_enviou_cliente
-            latencia_total += latencia_barramento_cliente
-            relatorio += (f"    * Cliente recebeu: {cliente_recebeu} "
-                          f"({latencia_barramento_cliente} ms / {latencia_total} ms)\n")
+        # Barramento -> Cliente
+        if barramento_enviou_cliente:
+            if barramento_recebeu_servidor:
+                latencia_barramento_s_to_c = barramento_recebeu_servidor - barramento_enviou_cliente
+                latencia_total += latencia_barramento_s_to_c
+                relatorio += (
+                    f"    * Barramento enviou para cliente: {barramento_enviou_cliente} "
+                    f"({latencia_barramento_s_to_c} ms / {latencia_total} ms)\n"
+                )
+
+            if barramento_recebeu_embarcado:
+                latencia_barramento_e_to_c = barramento_enviou_cliente - barramento_recebeu_embarcado
+                latencia_total += latencia_barramento_e_to_c
+                relatorio += (
+                    f"    * Barramento enviou para cliente: {barramento_enviou_cliente} "
+                    f"({latencia_barramento_e_to_c} ms / {latencia_total} ms)\n"
+                )
+
+            if cliente_recebeu:
+                latencia_barramento_cliente = cliente_recebeu - barramento_enviou_cliente
+                latencia_total += latencia_barramento_cliente
+                relatorio += (
+                    f"    * Cliente recebeu: {cliente_recebeu} "
+                    f"({latencia_barramento_cliente} ms / {latencia_total} ms)\n"
+                )
 
         return relatorio
 
