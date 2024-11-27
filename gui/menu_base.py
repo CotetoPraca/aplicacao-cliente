@@ -278,7 +278,7 @@ class MenuBase(ctk.CTkFrame):
         log_mensagem += "\n"
 
         if "metadata" in obj_mensagem.conteudo:
-            relatorio_latencia = self._gerar_relatorio_latencia(obj_mensagem)
+            relatorio_latencia = self._gerar_relatorio_latencia(obj_mensagem.conteudo["metadata"], obj_mensagem.origem)
             log_mensagem += "  - Relatório de Latência:\n" + relatorio_latencia
             CustomLogger.info(f"Relatorio de latencias:\n{relatorio_latencia}")
 
@@ -343,7 +343,7 @@ class MenuBase(ctk.CTkFrame):
     def update_text_box(self, message: str):
         self.master.after(0, self._insert_msg_in_textbox, message)
 
-    def _gerar_relatorio_latencia(self, mensagem: Mensagem) -> str:
+    def _gerar_relatorio_latencia(self, metadata: dict, origem: str) -> str:
         """
         Gera o relatório de latência com base nas medições retornadas no dicionário 'metadata'.
         Os reajustes de timestamp são baseados no nó mais distante no fluxo do mensagem.
@@ -351,9 +351,6 @@ class MenuBase(ctk.CTkFrame):
         :param metadata: Dicionário com os metadados da mensagem.
         :return: Um string formatada com as latências calculadas
         """
-        conteudo = mensagem.conteudo
-        metadata = conteudo.get("metadata")
-
         relatorio = ""
         latencia_total = 0
 
@@ -370,17 +367,17 @@ class MenuBase(ctk.CTkFrame):
         embarcado_enviou = None
         embarcado_recebeu = None
 
-        rtt_cliente = 0
-        rtt_barramento = 0
+        latencia_rtt_cliente = 0
+        latencia_rtt_barramento = 0
 
 
-        if "barramento" in mensagem.origem:
+        if "barramento" in origem:
             cliente_enviou = metadata.get("timestamp_cliente_msg_enviada", 0)
             barramento_recebeu_cliente = metadata.get("timestamp_bus_msg_recebida_cliente", 0)
             barramento_enviou_cliente = metadata.get("timestamp_bus_msg_enviada_cliente", 0)
             cliente_recebeu = metadata.get("timestamp_cliente_msg_recebida", 0)
 
-        if "servidor" in mensagem.origem:
+        if "servidor" in origem:
             cliente_enviou = metadata.get("timestamp_cliente_msg_enviada", 0)
             barramento_recebeu_cliente = metadata.get("timestamp_bus_msg_recebida_cliente", 0)
             barramento_enviou_servidor = metadata.get("timestamp_bus_msg_enviada_servidor", 0)
@@ -390,7 +387,7 @@ class MenuBase(ctk.CTkFrame):
             barramento_enviou_cliente = metadata.get("timestamp_bus_msg_enviada_cliente", 0)
             cliente_recebeu = metadata.get("timestamp_cliente_msg_recebida", 0)
 
-        if "embarcado" in mensagem.origem:
+        if "embarcado" in origem:
             cliente_enviou = metadata.get("timestamp_cliente_msg_enviada", 0)
             barramento_recebeu_cliente = metadata.get("timestamp_bus_msg_recebida_cliente", 0)
             barramento_enviou_embarcado = metadata.get("timestamp_bus_msg_enviada_embarcado", 0)
@@ -416,8 +413,8 @@ class MenuBase(ctk.CTkFrame):
         # Calcula o offset para o barramento e reajusta o timestamp para o nó mais distante (servidor ou embarcado)
         if barramento_enviou_servidor and servidor_recebeu and servidor_enviou and barramento_recebeu_servidor:
             latencia_envio = servidor_recebeu - barramento_enviou_servidor
-            latencia_recebimento = barramento_recebeu_embarcado - servidor_enviou
-            novo_offset_b_s = ((latencia_envio + latencia_recebimento) / 2 ) + rtt_barramento
+            latencia_recebimento = barramento_recebeu_servidor - servidor_enviou
+            novo_offset_b_s = ((latencia_envio + latencia_recebimento) / 2 ) + latencia_rtt_barramento
             self.offset_barramento_servidor = (0.7 * self.offset_barramento_servidor) + (0.3 * novo_offset_b_s)
 
             # Reajusta o timestamp do barramento em relação ao relógio do servidor
@@ -427,7 +424,7 @@ class MenuBase(ctk.CTkFrame):
         elif barramento_enviou_embarcado and embarcado_recebeu and embarcado_enviou and barramento_recebeu_embarcado:
             latencia_envio = embarcado_recebeu - barramento_enviou_embarcado
             latencia_recebimento = barramento_recebeu_embarcado - embarcado_enviou
-            novo_offset_b_e = ((latencia_envio + latencia_recebimento) / 2 ) + rtt_barramento
+            novo_offset_b_e = ((latencia_envio + latencia_recebimento) / 2 ) + latencia_rtt_barramento
             self.offset_barramento_embarcado = (0.7 * self.offset_barramento_embarcado) + (0.3 * novo_offset_b_e)
 
             # Reajusta o timestamp do barramento em relação ao relógio do embarcado
@@ -438,7 +435,7 @@ class MenuBase(ctk.CTkFrame):
         if cliente_enviou and barramento_recebeu_cliente and barramento_enviou_cliente and cliente_recebeu:
             latencia_envio = barramento_recebeu_cliente - cliente_enviou
             latencia_recebimento = cliente_recebeu - barramento_enviou_cliente
-            novo_offset_b_c = (latencia_envio + latencia_recebimento) / 2
+            novo_offset_b_c = ((latencia_envio + latencia_recebimento) / 2 ) + latencia_rtt_cliente
             self.offset_barramento_cliente = (0.7 * self.offset_barramento_cliente) + (0.3 * novo_offset_b_c)
 
             # Reajusta o timestamp do cliente em relação ao do embarcado
@@ -449,7 +446,7 @@ class MenuBase(ctk.CTkFrame):
 
         # Cliente -> Barramento
         if cliente_enviou and barramento_recebeu_cliente:
-            latencia_cliente_barramento = abs(barramento_recebeu_cliente - cliente_enviou - rtt_cliente)
+            latencia_cliente_barramento = abs(barramento_recebeu_cliente - cliente_enviou - latencia_rtt_cliente)
             latencia_total += latencia_cliente_barramento
             relatorio += (
                 f"    * Cliente enviou a mensagem: {cliente_enviou} (Inicio)\n"
@@ -476,7 +473,7 @@ class MenuBase(ctk.CTkFrame):
 
         # Barramento -> Servidor
         if barramento_enviou_servidor and servidor_recebeu:
-            latencia_barramento_servidor = abs(servidor_recebeu - barramento_enviou_servidor - rtt_barramento)
+            latencia_barramento_servidor = abs(servidor_recebeu - barramento_enviou_servidor - latencia_rtt_barramento)
             latencia_total += latencia_barramento_servidor
             relatorio += (
                 f"    * Servidor recebeu: {servidor_recebeu} "
@@ -494,7 +491,7 @@ class MenuBase(ctk.CTkFrame):
 
         # Servidor -> Barramento
         if servidor_enviou and barramento_recebeu_servidor:
-            latencia_servidor_barramento = abs(barramento_recebeu_servidor - servidor_enviou - rtt_barramento)
+            latencia_servidor_barramento = abs(barramento_recebeu_servidor - servidor_enviou - latencia_rtt_barramento)
             latencia_total += latencia_servidor_barramento
             relatorio += (
                 f"    * Barramento recebeu do servidor: {barramento_recebeu_servidor} "
@@ -530,7 +527,7 @@ class MenuBase(ctk.CTkFrame):
 
         # Barramento -> Cliente
         if barramento_enviou_cliente and cliente_recebeu:
-            latencia_barramento_cliente = abs(cliente_recebeu - barramento_enviou_cliente - rtt_cliente)
+            latencia_barramento_cliente = abs(cliente_recebeu - barramento_enviou_cliente - latencia_rtt_cliente)
             latencia_total += latencia_barramento_cliente
             relatorio += (
                 f"    * Cliente recebeu: {cliente_recebeu} "
