@@ -379,32 +379,27 @@ class MenuBase(ctk.CTkFrame):
             latencia_envio = barramento_recebeu_cliente - cliente_enviou
             latencia_recebimento = cliente_recebeu - barramento_enviou_cliente
             novo_offset_b_c = self._calcular_offset(latencia_envio, latencia_recebimento)
-            self.offset_barramento_cliente = 0.5 * (novo_offset_b_c + self.offset_barramento_cliente)
+            self.offset_barramento_cliente = (0.7 * self.offset_barramento_cliente) + (0.3 * novo_offset_b_c)
 
         if barramento_enviou_servidor and servidor_recebeu and servidor_enviou and barramento_recebeu_servidor:
             latencia_envio = servidor_recebeu - barramento_enviou_servidor
             latencia_recebimento = barramento_recebeu_embarcado - servidor_enviou
             novo_offset_b_s = self._calcular_offset(latencia_envio, latencia_recebimento)
-            self.offset_barramento_servidor = 0.5 * (novo_offset_b_s + self.offset_barramento_servidor)
+            self.offset_barramento_servidor = (0.7 * self.offset_barramento_servidor) + (0.3 * novo_offset_b_s)
 
         if barramento_enviou_embarcado and embarcado_recebeu and embarcado_enviou and barramento_recebeu_embarcado:
             latencia_envio = embarcado_recebeu - barramento_enviou_embarcado
             latencia_recebimento = barramento_recebeu_embarcado - embarcado_enviou
             novo_offset_b_e = self._calcular_offset(latencia_envio, latencia_recebimento)
-            self.offset_barramento_embarcado = 0.5 * (novo_offset_b_e + self.offset_barramento_embarcado)
-
-        # Calcula a média dos offsets
-        media_offsets = (
-            (self.offset_barramento_cliente + self.offset_barramento_servidor + self.offset_barramento_embarcado) / 3
-        )
+            self.offset_barramento_embarcado = (0.7 * self.offset_barramento_embarcado) + (0.3 * novo_offset_b_e)
 
         # Correção dos timestamps usando o barramento como referência
-        cliente_enviou += media_offsets
-        cliente_recebeu += media_offsets
-        servidor_enviou += media_offsets
-        servidor_recebeu += media_offsets
-        embarcado_enviou += media_offsets
-        embarcado_recebeu += media_offsets
+        cliente_enviou += self.offset_barramento_cliente
+        cliente_recebeu += self.offset_barramento_cliente
+        servidor_enviou += self.offset_barramento_servidor
+        servidor_recebeu += self.offset_barramento_servidor
+        embarcado_enviou += self.offset_barramento_embarcado
+        embarcado_recebeu += self.offset_barramento_embarcado
 
         # Cliente -> Barramento
         if cliente_enviou and barramento_recebeu_cliente:
