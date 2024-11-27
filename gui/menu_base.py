@@ -9,6 +9,11 @@ class MenuBase(ctk.CTkFrame):
         self.switch_frame = switch_frame
         self.send_message = send_message
 
+        # Variáveis para armazenar o drift de cada par de sistemas
+        self.drift_barramento_cliente = 0
+        self.drift_barramento_servidor = 0
+        self.drift_barramento_embarcado = 0
+
         # Configuração do Frame
         self.pack(expand=True, fill="both")
 
@@ -336,6 +341,17 @@ class MenuBase(ctk.CTkFrame):
     def update_text_box(self, message: str):
         self.master.after(0, self._insert_msg_in_textbox, message)
 
+    def _atualizar_drift(self, drift_atual: float, latencia_media: float) -> float:
+        """
+        Atualiza o valor do drift com base na latência medida.
+        A cada nova medição, o drift é ajustado para ser mais preciso.
+
+        :param drift_atual: O valor atual do drift armazenado.
+        :param latencia_media: A nova latência medida.
+        :return: O novo valor do drift.
+        """
+        return (drift_atual + latencia_media) / 2
+
     def _gerar_relatorio_latencia(self, metadata: dict) -> str:
         """
         Gera o relatório de latência com base nas medições retornadas no dicionário 'metadata'.
@@ -359,91 +375,108 @@ class MenuBase(ctk.CTkFrame):
 
         # Cliente -> Barramento
         if cliente_enviou and barramento_recebeu_cliente:
-            latencia_cliente_barramento = barramento_recebeu_cliente - cliente_enviou
+            latencia_cliente_barramento = abs(barramento_recebeu_cliente - cliente_enviou)
+            self.drift_barramento_cliente = self._atualizar_drift(self.drift_barramento_cliente,
+                                                                  latencia_cliente_barramento)
+            latencia_cliente_barramento += self.drift_barramento_cliente
             latencia_total += latencia_cliente_barramento
             relatorio += (
                 f"    * Cliente enviou a mensagem: {cliente_enviou} (Inicio)\n"
                 f"    * Barramento recebeu do cliente: {barramento_recebeu_cliente} "
-                f"({latencia_cliente_barramento} ms / {latencia_total} ms)\n"
+                f"({latencia_cliente_barramento:.4f} ms / {latencia_total:.4f} ms) "
+                f"| Drift: {self.drift_barramento_cliente:.4f} ms\n"
             )
 
-        # Barramento -> Servidor/Embarcado
+        # Barramento verifica o destino da mensagem
         if barramento_recebeu_cliente:
             if barramento_enviou_servidor:
-                latencia_barramento_c_to_s = barramento_enviou_servidor - barramento_recebeu_cliente
+                latencia_barramento_c_to_s = abs(barramento_enviou_servidor - barramento_recebeu_cliente)
                 latencia_total += latencia_barramento_c_to_s
                 relatorio += (
                     f"    * Barramento enviou para servidor: {barramento_enviou_servidor} "
-                    f"({latencia_barramento_c_to_s} ms / {latencia_total} ms)\n"
+                    f"({latencia_barramento_c_to_s:.4f} ms / {latencia_total:.4f} ms)\n"
                 )
             elif barramento_enviou_embarcado:
-                latencia_barramento_c_to_e = barramento_enviou_embarcado - barramento_recebeu_cliente
+                latencia_barramento_c_to_e = abs(barramento_enviou_embarcado - barramento_recebeu_cliente)
                 latencia_total += latencia_barramento_c_to_e
                 relatorio += (
                     f"    * Barramento enviou para embarcado: {barramento_enviou_embarcado} "
-                    f"({latencia_barramento_c_to_e} ms / {latencia_total} ms)\n"
+                    f"({latencia_barramento_c_to_e:.4f} ms / {latencia_total:.4f} ms)\n"
                 )
+
+        # Barramento -> Servidor
+        if barramento_enviou_servidor and servidor_recebeu:
+            latencia_barramento_servidor = abs(servidor_recebeu - barramento_enviou_servidor)
+            self.drift_barramento_servidor = self._atualizar_drift(self.drift_barramento_servidor,
+                                                                   latencia_barramento_servidor)
+            latencia_barramento_servidor += self.drift_barramento_servidor
+            latencia_total += latencia_barramento_servidor
+            relatorio += (
+                f"    * Servidor recebeu: {servidor_recebeu} "
+                f"({latencia_barramento_servidor} ms / {latencia_total} ms) "
+                f"| Drift: {self.drift_barramento_servidor:.4f} ms\n"
+            )
+
+        # Servidor processa a mensagem
+        if servidor_recebeu and servidor_enviou:
+            latencia_servidor = abs(servidor_enviou - servidor_recebeu)
+            latencia_total += latencia_servidor
+            relatorio += (
+                f"    * Servidor enviou a resposta: {servidor_enviou} "
+                f"({latencia_servidor:.4f} ms / {latencia_total:.4f} ms)\n"
+            )
 
         # Servidor -> Barramento
-        if barramento_enviou_servidor:
-            if servidor_recebeu:
-                latencia_barramento_servidor = servidor_recebeu - barramento_enviou_servidor
-                latencia_total += latencia_barramento_servidor
-                relatorio += (
-                    f"    * Servidor recebeu: {servidor_recebeu} "
-                    f"({latencia_barramento_servidor} ms / {latencia_total} ms)\n"
-                )
-
-            if servidor_enviou:
-                latencia_servidor = servidor_enviou - servidor_recebeu
-                latencia_total += latencia_servidor
-                relatorio += (
-                    f"    * Servidor enviou a resposta: {servidor_enviou} "
-                    f"({latencia_servidor} ms / {latencia_total} ms)\n"
-                )
-
-                if barramento_recebeu_servidor:
-                    latencia_servidor_barramento = barramento_recebeu_servidor - servidor_enviou
-                    latencia_total += latencia_servidor_barramento
-                    relatorio += (
-                        f"    * Barramento recebeu do servidor: {barramento_recebeu_servidor} "
-                        f"({latencia_servidor_barramento} ms / {latencia_total} ms)\n"
-                    )
+        if servidor_enviou and barramento_recebeu_servidor:
+            latencia_servidor_barramento = abs(barramento_recebeu_servidor - servidor_enviou)
+            self.drift_barramento_servidor = self._atualizar_drift(self.drift_barramento_servidor,
+                                                                   latencia_servidor_barramento)
+            latencia_servidor_barramento += self.drift_barramento_servidor
+            latencia_total += latencia_servidor_barramento
+            relatorio += (
+                f"    * Barramento recebeu do servidor: {barramento_recebeu_servidor} "
+                f"({latencia_servidor_barramento:.4f} ms / {latencia_total:.4f} ms) "
+                f"| Drift: {self.drift_barramento_servidor:.4f} ms\n"
+            )
 
         # Embarcado -> Barramento
         if barramento_enviou_embarcado and barramento_recebeu_embarcado:
-            latencia_embarcado_barramento = barramento_recebeu_embarcado - barramento_enviou_embarcado
+            latencia_embarcado_barramento = abs(barramento_recebeu_embarcado - barramento_enviou_embarcado)
             latencia_total += latencia_embarcado_barramento
             relatorio += (
                 f"    * Barramento recebeu do embarcado: {barramento_recebeu_embarcado} "
-                f"({latencia_embarcado_barramento} ms / {latencia_total} ms)"
+                f"({latencia_embarcado_barramento:.4f} ms / {latencia_total} ms)"
             )
 
-        # Barramento -> Cliente
+        # Barramento verifica o destino da mensagem
         if barramento_enviou_cliente:
             if barramento_recebeu_servidor:
-                latencia_barramento_s_to_c = barramento_recebeu_servidor - barramento_enviou_cliente
+                latencia_barramento_s_to_c = abs(barramento_recebeu_servidor - barramento_enviou_cliente)
                 latencia_total += latencia_barramento_s_to_c
                 relatorio += (
                     f"    * Barramento enviou para cliente: {barramento_enviou_cliente} "
-                    f"({latencia_barramento_s_to_c} ms / {latencia_total} ms)\n"
+                    f"({latencia_barramento_s_to_c:.4f} ms / {latencia_total:.4f} ms)\n"
                 )
 
             if barramento_recebeu_embarcado:
-                latencia_barramento_e_to_c = barramento_enviou_cliente - barramento_recebeu_embarcado
+                latencia_barramento_e_to_c = abs(barramento_enviou_cliente - barramento_recebeu_embarcado)
                 latencia_total += latencia_barramento_e_to_c
                 relatorio += (
                     f"    * Barramento enviou para cliente: {barramento_enviou_cliente} "
-                    f"({latencia_barramento_e_to_c} ms / {latencia_total} ms)\n"
+                    f"({latencia_barramento_e_to_c:.4f} ms / {latencia_total:.4f} ms)\n"
                 )
 
-            if cliente_recebeu:
-                latencia_barramento_cliente = cliente_recebeu - barramento_enviou_cliente
-                latencia_total += latencia_barramento_cliente
-                relatorio += (
-                    f"    * Cliente recebeu: {cliente_recebeu} "
-                    f"({latencia_barramento_cliente} ms / {latencia_total} ms)\n"
-                )
+        # Barramento -> Cliente
+        if barramento_enviou_cliente and cliente_recebeu:
+            latencia_barramento_cliente = abs(cliente_recebeu - barramento_enviou_cliente)
+            self.drift_barramento_cliente = self._atualizar_drift(self.drift_barramento_cliente,
+                                                                  latencia_barramento_cliente)
+            latencia_barramento_cliente += self.drift_barramento_cliente
+            latencia_total += latencia_barramento_cliente
+            relatorio += (
+                f"    * Cliente recebeu: {cliente_recebeu} "
+                f"({latencia_barramento_cliente:.4f} ms / {latencia_total:.4f} ms)\n"
+            )
 
         return relatorio
 
