@@ -10,9 +10,9 @@ class MenuBase(ctk.CTkFrame):
         self.send_message = send_message
 
         # Variáveis para armazenar o drift de cada par de sistemas
-        self.drift_barramento_cliente = 0
-        self.drift_barramento_servidor = 0
-        self.drift_barramento_embarcado = 0
+        self.offset_barramento_cliente = 0
+        self.offset_barramento_servidor = 0
+        self.offset_barramento_embarcado = 0
 
         # Configuração do Frame
         self.pack(expand=True, fill="both")
@@ -341,16 +341,15 @@ class MenuBase(ctk.CTkFrame):
     def update_text_box(self, message: str):
         self.master.after(0, self._insert_msg_in_textbox, message)
 
-    def _atualizar_drift(self, drift_atual: float, latencia_media: float) -> float:
+    def _calcular_offset(self, latencia_envio: float, latencia_recebimento: float) -> float:
         """
-        Atualiza o valor do drift com base na latência medida.
-        A cada nova medição, o drift é ajustado para ser mais preciso.
+        Calcula o offset com base na soma das diferenças entre as medições de envio e recebimento.
 
-        :param drift_atual: O valor atual do drift armazenado.
-        :param latencia_media: A nova latência medida.
-        :return: O novo valor do drift.
+        :param latencia_envio: atraso em milissegundos para a requisição chegar ao destino.
+        :param latencia_recebimento: atraso em milissegundos para receber a resposta da requisição.
+        :return: valor do offset.
         """
-        return (drift_atual + latencia_media) / 2
+        return (latencia_envio + latencia_recebimento) / 2
 
     def _gerar_relatorio_latencia(self, metadata: dict) -> str:
         """
@@ -362,29 +361,54 @@ class MenuBase(ctk.CTkFrame):
         relatorio = ""
         latencia_total = 0
 
-        cliente_enviou = metadata.get("timestamp_cliente_msg_enviada")
-        barramento_recebeu_cliente = metadata.get("timestamp_bus_msg_recebida_cliente")
-        barramento_enviou_servidor = metadata.get("timestamp_bus_msg_enviada_servidor")
-        barramento_enviou_embarcado = metadata.get("timestamp_bus_msg_enviada_embarcado")
-        servidor_recebeu = metadata.get("timestamp_servidor_msg_recebida")
-        servidor_enviou = metadata.get("timestamp_servidor_msg_enviada")
-        barramento_recebeu_servidor = metadata.get("timestamp_bus_msg_recebida_servidor")
-        barramento_recebeu_embarcado = metadata.get("timestamp_bus_msg_recebida_embarcado")
-        barramento_enviou_cliente = metadata.get("timestamp_bus_msg_enviada_cliente")
-        cliente_recebeu = metadata.get("timestamp_cliente_msg_recebida")
+        cliente_enviou = metadata.get("timestamp_cliente_msg_enviada", 0)
+        barramento_recebeu_cliente = metadata.get("timestamp_bus_msg_recebida_cliente", 0)
+        barramento_enviou_servidor = metadata.get("timestamp_bus_msg_enviada_servidor", 0)
+        servidor_recebeu = metadata.get("timestamp_servidor_msg_recebida", 0)
+        servidor_enviou = metadata.get("timestamp_servidor_msg_enviada", 0)
+        barramento_recebeu_servidor = metadata.get("timestamp_bus_msg_recebida_servidor", 0)
+        barramento_enviou_embarcado = metadata.get("timestamp_bus_msg_enviada_embarcado", 0)
+        embarcado_recebeu = metadata.get("timestamp_embarcado_msg_recebida", 0)
+        embarcado_enviou = metadata.get("timestamp_embarcado_msg_enviada", 0)
+        barramento_recebeu_embarcado = metadata.get("timestamp_bus_msg_recebida_embarcado", 0)
+        barramento_enviou_cliente = metadata.get("timestamp_bus_msg_enviada_cliente", 0)
+        cliente_recebeu = metadata.get("timestamp_cliente_msg_recebida", 0)
+
+        # Calculo dos offsets da máquinas
+        if cliente_enviou and barramento_recebeu_cliente and barramento_enviou_cliente and cliente_recebeu:
+            latencia_envio = barramento_recebeu_cliente - cliente_enviou
+            latencia_recebimento = cliente_recebeu - barramento_enviou_cliente
+            novo_offset_b_c = self._calcular_offset(latencia_envio, latencia_recebimento)
+            self.offset_barramento_cliente = 0.5 * (novo_offset_b_c + self.offset_barramento_cliente)
+
+        if barramento_enviou_servidor and servidor_recebeu and servidor_enviou and barramento_recebeu_servidor:
+            latencia_envio = servidor_recebeu - barramento_enviou_servidor
+            latencia_recebimento = barramento_recebeu_embarcado - servidor_enviou
+            novo_offset_b_s = self._calcular_offset(latencia_envio, latencia_recebimento)
+            self.offset_barramento_servidor = 0.5 * (novo_offset_b_s + self.offset_barramento_servidor)
+
+        if barramento_enviou_embarcado and embarcado_recebeu and embarcado_enviou and barramento_recebeu_embarcado:
+            latencia_envio = embarcado_recebeu - barramento_enviou_embarcado
+            latencia_recebimento = barramento_recebeu_embarcado - embarcado_enviou
+            novo_offset_b_e = self._calcular_offset(latencia_envio, latencia_recebimento)
+            self.offset_barramento_embarcado = 0.5 * (novo_offset_b_e + self.offset_barramento_embarcado)
+
+        # Correção dos timestamps usando o barramento como referência
+        cliente_enviou += self.offset_barramento_cliente
+        cliente_recebeu += self.offset_barramento_cliente
+        servidor_enviou += self.offset_barramento_servidor
+        servidor_recebeu += self.offset_barramento_servidor
+        embarcado_enviou += self.offset_barramento_embarcado
+        embarcado_recebeu += self.offset_barramento_embarcado
 
         # Cliente -> Barramento
         if cliente_enviou and barramento_recebeu_cliente:
             latencia_cliente_barramento = abs(barramento_recebeu_cliente - cliente_enviou)
-            self.drift_barramento_cliente = self._atualizar_drift(self.drift_barramento_cliente,
-                                                                  latencia_cliente_barramento)
-            latencia_cliente_barramento += self.drift_barramento_cliente
             latencia_total += latencia_cliente_barramento
             relatorio += (
                 f"    * Cliente enviou a mensagem: {cliente_enviou} (Inicio)\n"
                 f"    * Barramento recebeu do cliente: {barramento_recebeu_cliente} "
-                f"({latencia_cliente_barramento:.4f} ms / {latencia_total:.4f} ms) "
-                f"| Drift: {self.drift_barramento_cliente:.4f} ms\n"
+                f"({latencia_cliente_barramento:.4f} ms / {latencia_total:.4f} ms)\n"
             )
 
         # Barramento verifica o destino da mensagem
@@ -407,14 +431,10 @@ class MenuBase(ctk.CTkFrame):
         # Barramento -> Servidor
         if barramento_enviou_servidor and servidor_recebeu:
             latencia_barramento_servidor = abs(servidor_recebeu - barramento_enviou_servidor)
-            self.drift_barramento_servidor = self._atualizar_drift(self.drift_barramento_servidor,
-                                                                   latencia_barramento_servidor)
-            latencia_barramento_servidor += self.drift_barramento_servidor
             latencia_total += latencia_barramento_servidor
             relatorio += (
                 f"    * Servidor recebeu: {servidor_recebeu} "
-                f"({latencia_barramento_servidor} ms / {latencia_total} ms) "
-                f"| Drift: {self.drift_barramento_servidor:.4f} ms\n"
+                f"({latencia_barramento_servidor} ms / {latencia_total} ms)\n"
             )
 
         # Servidor processa a mensagem
@@ -429,14 +449,10 @@ class MenuBase(ctk.CTkFrame):
         # Servidor -> Barramento
         if servidor_enviou and barramento_recebeu_servidor:
             latencia_servidor_barramento = abs(barramento_recebeu_servidor - servidor_enviou)
-            self.drift_barramento_servidor = self._atualizar_drift(self.drift_barramento_servidor,
-                                                                   latencia_servidor_barramento)
-            latencia_servidor_barramento += self.drift_barramento_servidor
             latencia_total += latencia_servidor_barramento
             relatorio += (
                 f"    * Barramento recebeu do servidor: {barramento_recebeu_servidor} "
-                f"({latencia_servidor_barramento:.4f} ms / {latencia_total:.4f} ms) "
-                f"| Drift: {self.drift_barramento_servidor:.4f} ms\n"
+                f"({latencia_servidor_barramento:.4f} ms / {latencia_total:.4f} ms)\n"
             )
 
         # Embarcado -> Barramento
@@ -445,7 +461,7 @@ class MenuBase(ctk.CTkFrame):
             latencia_total += latencia_embarcado_barramento
             relatorio += (
                 f"    * Barramento recebeu do embarcado: {barramento_recebeu_embarcado} "
-                f"({latencia_embarcado_barramento:.4f} ms / {latencia_total} ms)"
+                f"({latencia_embarcado_barramento:.4f} ms / {latencia_total} ms)\n"
             )
 
         # Barramento verifica o destino da mensagem
@@ -469,9 +485,6 @@ class MenuBase(ctk.CTkFrame):
         # Barramento -> Cliente
         if barramento_enviou_cliente and cliente_recebeu:
             latencia_barramento_cliente = abs(cliente_recebeu - barramento_enviou_cliente)
-            self.drift_barramento_cliente = self._atualizar_drift(self.drift_barramento_cliente,
-                                                                  latencia_barramento_cliente)
-            latencia_barramento_cliente += self.drift_barramento_cliente
             latencia_total += latencia_barramento_cliente
             relatorio += (
                 f"    * Cliente recebeu: {cliente_recebeu} "
@@ -479,5 +492,3 @@ class MenuBase(ctk.CTkFrame):
             )
 
         return relatorio
-
-
