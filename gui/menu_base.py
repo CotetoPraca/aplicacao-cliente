@@ -393,13 +393,18 @@ class MenuBase(ctk.CTkFrame):
             novo_offset_b_e = self._calcular_offset(latencia_envio, latencia_recebimento)
             self.offset_barramento_embarcado = 0.5 * (novo_offset_b_e + self.offset_barramento_embarcado)
 
+        # Calcula a média dos offsets
+        media_offsets = (
+            (self.offset_barramento_cliente + self.offset_barramento_servidor + self.offset_barramento_embarcado) / 3
+        )
+
         # Correção dos timestamps usando o barramento como referência
-        cliente_enviou += self.offset_barramento_cliente
-        cliente_recebeu += self.offset_barramento_cliente
-        servidor_enviou += self.offset_barramento_servidor
-        servidor_recebeu += self.offset_barramento_servidor
-        embarcado_enviou += self.offset_barramento_embarcado
-        embarcado_recebeu += self.offset_barramento_embarcado
+        cliente_enviou += media_offsets
+        cliente_recebeu += media_offsets
+        servidor_enviou += media_offsets
+        servidor_recebeu += media_offsets
+        embarcado_enviou += media_offsets
+        embarcado_recebeu += media_offsets
 
         # Cliente -> Barramento
         if cliente_enviou and barramento_recebeu_cliente:
