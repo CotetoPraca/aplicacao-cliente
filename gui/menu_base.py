@@ -1,5 +1,3 @@
-from importlib.metadata import metadata
-
 import customtkinter as ctk
 from utils.custom_logger import CustomLogger
 from mensagem.mensagem import Mensagem
