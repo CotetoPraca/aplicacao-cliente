@@ -73,12 +73,12 @@ class App:
         self.frame_atual = self.frames[frame_id]
         self.frame_atual.pack(expand=True, fill="both")
 
-    def _send_mqtt_message(self, msg:Mensagem):
+    def _send_mqtt_message(self, msg: Mensagem):
         self.mqtt_client.publish(msg, "topico/barramento")
 
-    def _send_coap_message(self, msg:Mensagem):
+    def _send_coap_message(self, msg: Mensagem):
         try:
-            CustomLogger.info(f"Enviando mensagem: {msg}")
+            CustomLogger.info(f"Enviando mensagem: {msg.to_json_string()}")
             if msg and self.coap_thread and self.coap_thread.is_alive():
                 asyncio.run_coroutine_threadsafe(self.coap_server.post(msg), self.coap_server.get_running_future_loop)
         except Exception as e:
