@@ -131,25 +131,25 @@ class MenuBase(ctk.CTkFrame):
         self.entry_sensor = ctk.CTkEntry(self.consultar_sensor_form_frame)
         self.entry_sensor.grid(row=0, column=1, padx=5, pady=10, sticky="ew")
 
-        self.label_data_inicio = ctk.CTkLabel(self.consultar_sensor_form_frame, text="Data de Início (YYYY-MM-DD):")
-        self.label_data_inicio.grid(row=1, column=0, padx=5, pady=10, sticky="ew")
-        self.entry_data_inicio = ctk.CTkEntry(self.consultar_sensor_form_frame)
-        self.entry_data_inicio.grid(row=1, column=1, padx=5, pady=10, sticky="ew")
+        self.label_sensor_data_inicio = ctk.CTkLabel(self.consultar_sensor_form_frame, text="Data de Início (YYYY-MM-DD):")
+        self.label_sensor_data_inicio.grid(row=1, column=0, padx=5, pady=10, sticky="ew")
+        self.entry_sensor_data_inicio = ctk.CTkEntry(self.consultar_sensor_form_frame)
+        self.entry_sensor_data_inicio.grid(row=1, column=1, padx=5, pady=10, sticky="ew")
 
-        self.label_hora_inicio = ctk.CTkLabel(self.consultar_sensor_form_frame, text="Horário de Início (HH:MM):")
-        self.label_hora_inicio.grid(row=2, column=0, padx=5, pady=10, sticky="ew")
-        self.entry_hora_inicio = ctk.CTkEntry(self.consultar_sensor_form_frame)
-        self.entry_hora_inicio.grid(row=2, column=1, padx=5, pady=10, sticky="ew")
+        self.label_sensor_hora_inicio = ctk.CTkLabel(self.consultar_sensor_form_frame, text="Horário de Início (HH:MM):")
+        self.label_sensor_hora_inicio.grid(row=2, column=0, padx=5, pady=10, sticky="ew")
+        self.entry_sensor_hora_inicio = ctk.CTkEntry(self.consultar_sensor_form_frame)
+        self.entry_sensor_hora_inicio.grid(row=2, column=1, padx=5, pady=10, sticky="ew")
 
-        self.label_data_fim = ctk.CTkLabel(self.consultar_sensor_form_frame, text="Data de Fim (YYYY-MM-DD):")
-        self.label_data_fim.grid(row=3, column=0, padx=5, pady=10, sticky="ew")
-        self.entry_data_fim = ctk.CTkEntry(self.consultar_sensor_form_frame)
-        self.entry_data_fim.grid(row=3, column=1, padx=5, pady=10, sticky="ew")
+        self.label_sensor_data_fim = ctk.CTkLabel(self.consultar_sensor_form_frame, text="Data de Fim (YYYY-MM-DD):")
+        self.label_sensor_data_fim.grid(row=3, column=0, padx=5, pady=10, sticky="ew")
+        self.entry_sensor_data_fim = ctk.CTkEntry(self.consultar_sensor_form_frame)
+        self.entry_sensor_data_fim.grid(row=3, column=1, padx=5, pady=10, sticky="ew")
 
-        self.label_hora_fim = ctk.CTkLabel(self.consultar_sensor_form_frame, text="Horário de Fim (HH:MM):")
-        self.label_hora_fim.grid(row=4, column=0, padx=5, pady=10, sticky="ew")
-        self.entry_hora_fim = ctk.CTkEntry(self.consultar_sensor_form_frame)
-        self.entry_hora_fim.grid(row=4, column=1, padx=5, pady=10, sticky="ew")
+        self.label_sensor_hora_fim = ctk.CTkLabel(self.consultar_sensor_form_frame, text="Horário de Fim (HH:MM):")
+        self.label_sensor_hora_fim.grid(row=4, column=0, padx=5, pady=10, sticky="ew")
+        self.entry_sensor_hora_fim = ctk.CTkEntry(self.consultar_sensor_form_frame)
+        self.entry_sensor_hora_fim.grid(row=4, column=1, padx=5, pady=10, sticky="ew")
 
         self.send_button = ctk.CTkButton(self.consultar_sensor_form_frame, text="Enviar Mensagem",
                                          command=self._send_message)
@@ -163,25 +163,25 @@ class MenuBase(ctk.CTkFrame):
 
         # Configuração do Frame do formulário de CONSULTAR_VAZAO
 
-        self.label_data_inicio = ctk.CTkLabel(self.consultar_vazao_form_frame, text="Data de Início (YYYY-MM-DD):")
-        self.label_data_inicio.grid(row=0, column=0, padx=5, pady=10, sticky="ew")
-        self.entry_data_inicio = ctk.CTkEntry(self.consultar_vazao_form_frame)
-        self.entry_data_inicio.grid(row=0, column=1, padx=5, pady=10, sticky="ew")
+        self.label_vazao_data_inicio = ctk.CTkLabel(self.consultar_vazao_form_frame, text="Data de Início (YYYY-MM-DD):")
+        self.label_vazao_data_inicio.grid(row=0, column=0, padx=5, pady=10, sticky="ew")
+        self.entry_vazao_data_inicio = ctk.CTkEntry(self.consultar_vazao_form_frame)
+        self.entry_vazao_data_inicio.grid(row=0, column=1, padx=5, pady=10, sticky="ew")
 
-        self.label_hora_inicio = ctk.CTkLabel(self.consultar_vazao_form_frame, text="Horário de Início (HH:MM):")
-        self.label_hora_inicio.grid(row=1, column=0, padx=5, pady=10, sticky="ew")
-        self.entry_hora_inicio = ctk.CTkEntry(self.consultar_vazao_form_frame)
-        self.entry_hora_inicio.grid(row=1, column=1, padx=5, pady=10, sticky="ew")
+        self.label_vazao_hora_inicio = ctk.CTkLabel(self.consultar_vazao_form_frame, text="Horário de Início (HH:MM):")
+        self.label_vazao_hora_inicio.grid(row=1, column=0, padx=5, pady=10, sticky="ew")
+        self.entry_vazao_hora_inicio = ctk.CTkEntry(self.consultar_vazao_form_frame)
+        self.entry_vazao_hora_inicio.grid(row=1, column=1, padx=5, pady=10, sticky="ew")
 
-        self.label_data_fim = ctk.CTkLabel(self.consultar_vazao_form_frame, text="Data de Fim (YYYY-MM-DD):")
-        self.label_data_fim.grid(row=2, column=0, padx=5, pady=10, sticky="ew")
-        self.entry_data_fim = ctk.CTkEntry(self.consultar_vazao_form_frame)
-        self.entry_data_fim.grid(row=2, column=1, padx=5, pady=10, sticky="ew")
+        self.label_vazao_data_fim = ctk.CTkLabel(self.consultar_vazao_form_frame, text="Data de Fim (YYYY-MM-DD):")
+        self.label_vazao_data_fim.grid(row=2, column=0, padx=5, pady=10, sticky="ew")
+        self.entry_vazao_data_fim = ctk.CTkEntry(self.consultar_vazao_form_frame)
+        self.entry_vazao_data_fim.grid(row=2, column=1, padx=5, pady=10, sticky="ew")
 
-        self.label_hora_fim = ctk.CTkLabel(self.consultar_vazao_form_frame, text="Horário de Fim (HH:MM):")
-        self.label_hora_fim.grid(row=3, column=0, padx=5, pady=10, sticky="ew")
-        self.entry_hora_fim = ctk.CTkEntry(self.consultar_vazao_form_frame)
-        self.entry_hora_fim.grid(row=3, column=1, padx=5, pady=10, sticky="ew")
+        self.label_vazao_hora_fim = ctk.CTkLabel(self.consultar_vazao_form_frame, text="Horário de Fim (HH:MM):")
+        self.label_vazao_hora_fim.grid(row=3, column=0, padx=5, pady=10, sticky="ew")
+        self.entry_vazao_hora_fim = ctk.CTkEntry(self.consultar_vazao_form_frame)
+        self.entry_vazao_hora_fim.grid(row=3, column=1, padx=5, pady=10, sticky="ew")
 
         self.send_button = ctk.CTkButton(self.consultar_vazao_form_frame, text="Enviar Mensagem",
                                          command=self._send_message)
@@ -201,7 +201,7 @@ class MenuBase(ctk.CTkFrame):
                                                           variable=ctk.StringVar(value=""), onvalue="3", offvalue="")
         self.checkbox_ponto_irrigacao_3.grid(row=2, column=1, padx=5, pady=10, sticky="ew")
 
-        self.send_button = ctk.CTkButton(self.consultar_moeda_form_frame, text="Enviar Mensagem",
+        self.send_button = ctk.CTkButton(self.controle_manual_form_frame, text="Enviar Mensagem",
                                          command=self._send_message)
         self.send_button.grid(row=3, columnspan=2, padx=5, pady=10, sticky="ew")
 
@@ -305,15 +305,15 @@ class MenuBase(ctk.CTkFrame):
         elif acao == "CONSULTAR_SENSOR":
             conteudo = {
                 "sensor": self.entry_sensor.get(),
-                "periodoInicio": f"{self.entry_data_inicio.get()} {self.entry_hora_inicio.get()}:00",
-                "periodoFim": f"{self.entry_data_fim.get()} {self.entry_hora_fim.get()}:00"
+                "periodoInicio": f"{self.entry_sensor_data_inicio.get()} {self.entry_sensor_hora_inicio.get()}:00",
+                "periodoFim": f"{self.entry_sensor_data_fim.get()} {self.entry_sensor_hora_fim.get()}:00"
             }
         elif acao == "CONSULTAR_STATUS":
             pass
         elif acao == "CONSULTAR_VAZAO":
             conteudo = {
-                "periodoInicio": f"{self.entry_data_inicio.get()} {self.entry_hora_inicio.get()}:00",
-                "periodoFim": f"{self.entry_data_fim.get()} {self.entry_hora_fim.get()}:00"
+                "periodoInicio": f"{self.entry_vazao_data_inicio.get()} {self.entry_vazao_hora_inicio.get()}:00",
+                "periodoFim": f"{self.entry_vazao_data_fim.get()} {self.entry_vazao_hora_fim.get()}:00"
             }
         elif acao == "CONTROLE_MANUAL":
             pontos_de_irrigacao = (f"{self.checkbox_ponto_irrigacao_1.get()}{self.checkbox_ponto_irrigacao_2.get()}"
@@ -440,8 +440,6 @@ class MenuBase(ctk.CTkFrame):
             cliente_enviou -= self.offset_barramento_cliente
             cliente_recebeu -= self.offset_barramento_cliente
 
-        # Calculo das latências com os timestamps reajustados
-
         # Cliente -> Barramento
         if cliente_enviou and barramento_recebeu_cliente:
             latencia_cliente_barramento = abs(barramento_recebeu_cliente - cliente_enviou - latencia_rtt_cliente)
@@ -475,7 +473,7 @@ class MenuBase(ctk.CTkFrame):
             latencia_total += latencia_barramento_servidor
             relatorio += (
                 f"    * Servidor recebeu: {servidor_recebeu} "
-                f"({latencia_barramento_servidor} ms / {latencia_total} ms)\n"
+                f"({latencia_barramento_servidor:.4f} ms / {latencia_total:.4f} ms)\n"
             )
 
         # Servidor processa a mensagem
@@ -496,13 +494,31 @@ class MenuBase(ctk.CTkFrame):
                 f"({latencia_servidor_barramento:.4f} ms / {latencia_total:.4f} ms)\n"
             )
 
+        # Barramento -> Embarcado
+        if barramento_enviou_embarcado and embarcado_recebeu:
+            latencia_barramento_embarcado = abs(embarcado_recebeu - barramento_enviou_embarcado - latencia_rtt_barramento)
+            latencia_total += latencia_barramento_embarcado
+            relatorio += (
+                f"    * Embarcado recebeu: {embarcado_recebeu} "
+                f"({latencia_barramento_embarcado:.4f} ms / {latencia_total:.4f} ms)\n"
+            )
+
+        # Embarcado processa a mensagem
+        if embarcado_recebeu and embarcado_enviou:
+            latencia_embarcado = abs(embarcado_enviou - embarcado_recebeu)
+            latencia_total += latencia_embarcado
+            relatorio += (
+                f"    * Embarcado enviou a resposta: {embarcado_enviou} "
+                f"({latencia_embarcado:.4f} ms / {latencia_total:.4f} ms)\n"
+            )
+
         # Embarcado -> Barramento
         if barramento_enviou_embarcado and barramento_recebeu_embarcado:
             latencia_embarcado_barramento = abs(barramento_recebeu_embarcado - barramento_enviou_embarcado)
             latencia_total += latencia_embarcado_barramento
             relatorio += (
                 f"    * Barramento recebeu do embarcado: {barramento_recebeu_embarcado} "
-                f"({latencia_embarcado_barramento:.4f} ms / {latencia_total} ms)\n"
+                f"({latencia_embarcado_barramento:.4f} ms / {latencia_total:.4f} ms)\n"
             )
 
         # Barramento verifica o destino da mensagem

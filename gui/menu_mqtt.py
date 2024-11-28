@@ -14,7 +14,7 @@ class MenuMqtt(MenuBase):
     def _inicializa_campos_teste(self):
         """Insere valores iniciais nos campos de entrada para testes."""
         self.entry_origem.insert(0, "topico/cliente")
-        self.entry_destino.insert(0, "topico/servidor")
+        self.entry_destino.insert(0, "topico/")
         self.entry_simbolo_acao.insert(0, "IBM")
         self.entry_moeda_ref.insert(0, "CAD")
         self.entry_moeda_dest.insert(0, "BRL")
