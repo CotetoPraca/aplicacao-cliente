@@ -4,6 +4,7 @@ import customtkinter as ctk
 
 class MenuPrincipal(ctk.CTkFrame):
     def __init__(self, parent: ctk.CTk, switch_frame: Callable[[str], None]):
+        """Configura o menu principal da aplicação, com a seleção do protocolo a ser usado."""
         super().__init__(parent)
         self.switch_frame = switch_frame
 

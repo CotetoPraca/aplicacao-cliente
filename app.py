@@ -17,6 +17,11 @@ except ImportError:
 
 class App:
     def __init__(self, parent: ctk.CTk):
+        """
+        Configura a interface da aplicação e a inicializa no menu principal
+
+        :param parent: A janela em que a interface será configurada
+        """
         # Configurações da janela
         self.master = parent
         self.master.title("Aplicação Cliente")
@@ -54,7 +59,12 @@ class App:
         self.frame_atual = None
         self.mudar_frame("menu-principal")
 
-    def mudar_frame(self, frame_id: str):
+    def mudar_frame(self, frame_id: str) -> None:
+        """
+        Função auxiliar para alternar entre os menus da interface.
+
+        :param frame_id: O ID do frame a ser mostrado.
+        """
         if self.frame_atual is not None:
             self.frame_atual.pack_forget()
 
@@ -73,10 +83,20 @@ class App:
         self.frame_atual = self.frames[frame_id]
         self.frame_atual.pack(expand=True, fill="both")
 
-    def _send_mqtt_message(self, msg: Mensagem):
+    def _send_mqtt_message(self, msg: Mensagem) -> None:
+        """
+        Aciona o envio da mensagem via protocolo MQTT ao barramento.
+
+        :param msg: A mensagem a ser enviada.
+        """
         self.mqtt_client.publish(msg, "topico/barramento")
 
-    def _send_coap_message(self, msg: Mensagem):
+    def _send_coap_message(self, msg: Mensagem) -> None:
+        """
+        Aciona o envio da mensagem via protocolo CoAP ao barramento.
+
+        :param msg: A mensagem a ser enviada.
+        """
         try:
             CustomLogger.info(f"Enviando mensagem: {msg.to_json_string()}")
             if msg and self.coap_thread and self.coap_thread.is_alive():
@@ -84,7 +104,8 @@ class App:
         except Exception as e:
             CustomLogger.error(f"Erro ao enviar mensagem: {e}")
 
-    def _start_coap_server(self):
+    def _start_coap_server(self) -> None:
+        """Inicializa o servidor CoAP para receber mensagens via CoAP do barramento"""
         # Verifica se já existe uma thread do servidor em execução
         if not self.coap_thread or not self.coap_thread.is_alive():
             CustomLogger.info("Iniciando uma nova thread do servidor COAP...")
@@ -95,12 +116,14 @@ class App:
             CustomLogger.info("A thread do servidor COAP já está em execução.")
 
     def _run_coap_server(self):
+        """Auxiliar para iniciar o servidor CoAP de forma paralela à aplicação"""
         self.coap_loop = asyncio.new_event_loop()
         asyncio.set_event_loop(self.coap_loop)
         self.coap_loop.run_until_complete(self.coap_server.start())
         self.coap_loop.run_forever()
 
     def _stop_coap_server(self):
+        """Interrompe o servidor CoAP"""
         if self.coap_loop:
             future = asyncio.run_coroutine_threadsafe(self.coap_server.stop(), self.coap_loop)
             future.result()
@@ -126,6 +149,7 @@ class App:
             self.coap_loop = None # Limpa a referência para evitar o uso indevido
 
     def on_close(self):
+        """Configura a janela para encerrar a aplicação ao fechar a interface"""
         CustomLogger.info("Encerrando a aplicação...")
 
         # Desconecta o cliente MQTT

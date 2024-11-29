@@ -4,12 +4,14 @@ import time
 
 class Mensagem:
     def __init__(self, acao: str, origem: str, destino: str, conteudo: dict):
+        """Define os campos esperados de uma mensagem"""
         self.acao = acao
         self.origem = origem
         self.destino = destino
         self.conteudo = conteudo
 
     def to_json_string(self) -> str:
+        """Converte os dados do objeto em uma string json"""
         json_str = {
             "acao": self.acao,
             "origem": self.origem,
@@ -20,6 +22,7 @@ class Mensagem:
 
     @classmethod
     def from_json_string(cls, json_str: str):
+        """Converte uma string json em um objeto Mensagem"""
         json_obj = json.loads(json_str)
         return cls(
             acao=json_obj["acao"],

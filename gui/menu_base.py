@@ -5,6 +5,7 @@ from typing import Callable
 
 class MenuBase(ctk.CTkFrame):
     def __init__(self, parent: ctk.CTk, switch_frame: Callable[[str], None], send_message: Callable[[Mensagem], None]):
+        """Configura um menu padrão entre os protocolos."""
         super().__init__(parent)
         self.switch_frame = switch_frame
         self.send_message = send_message
